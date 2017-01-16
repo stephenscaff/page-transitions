@@ -5,9 +5,6 @@
    *  Adds 'is-exiting' class while exiting
    *  Exclude links with 'no-trans' class
    *
-   *  @since    v1.3. New loading classes
-   *  @since    v1.2  Added exclude class
-   *  @see      scss/utils/animations-transitions.scss
    *  @author   Stephen Scaff
    */
 
