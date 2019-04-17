@@ -1,120 +1,161 @@
-  /**
-   *  Page Transitions
-   *  All sexy like page transitions between page loads
-   *  Adds 'is-loading' | 'is-loaded' classes for loading
-   *  Adds 'is-exiting' class while exiting
-   *  Exclude links with 'no-trans' class
-   *
-   *  @author   Stephen Scaff
-   */
+/**
+ *  Page Transitions
+ *  All sexy like page transitions between page loads
+ *  Adds 'is-loading' | 'is-loaded' classes for loading
+ *  Adds 'is-exiting' class while exiting
+ *  Exclude links with 'no-trans' class
+ *
+ *  @author   Stephen Scaff
+ */
 
-  // Page Transition
-  var PageTransition = (function() {
+// Page Transition
+const PageTransitions = (() => {
 
-    // Make sure to use https if https
-    var s, siteURL = 'http://' + top.location.host.toString();
+  let s
+  const html = document.querySelector('html');
+  const siteURL = location.host.toString();
 
-    // The no-trans class
-    var noTrans = 'no-trans';
+  // The no-trans class
+  var noTrans = 'no-trans';
 
-    return {
-      
-      /**
-       * Settings Object
-       */
-      settings: {
-        noTransLinks: $('a[href^="' + siteURL + '"], a[href^="/"], a[href^="./"], a[href^="../"]').not('.'+noTrans),
-        linkLocation: null,
-        body: $('html, body'),
-        exitDuration: 1700,
-        entranceDuration: 800,
-      },
+  return {
 
-      /**
-       * Init
-       */
-      init: function() {
-        s = this.settings;
-        this.loadingClasses();
-        this.transitionPage();
-        this.unloadWindow();
-        this.workaround();
-      },
+    /**
+     * Settings Object
+     */
+    settings: {
+      transLinks: document.querySelectorAll('a[href^="http://' + siteURL + '"], a[href^="https://' + siteURL + '"], a[href^="/"]',),
+      linkLocation: null,
+      html: document.querySelector('html'),
+      body: document.querySelector('body'),
+      exitDuration: 900,
+      entranceDuration: 500,
+      isLoaded: false,
+      isMenuLink: false,
+      finalAnimationStart: 600,
+      classes: {
+        loading: 'is-loading',
+        loaded: 'is-loaded',
+        exiting: 'is-exiting'
+      }
+    },
 
-      /**
-       * Handle our loading classes
-       */
-      loadingClasses: function() {
-        s.body.addClass('is-loading');
-        // Remove class to prevent any Webkit bugs
+    /**
+     * Init
+     */
+    init() {
+      s = this.settings;
+      this.isPageLoaded();
+      this.entrance();
+      this.transitionPage();
+      this.unloadWindow();
+      this.workaround();
+    },
+
+    /**
+     * ForEach Utility
+     * Ensure we can loop over a object or nodelist
+     * @see https://toddmotto.com/ditch-the-array-foreach-call-nodelist-hack/
+     */
+    forEach(array, callback, scope) {
+      for (var i = 0; i < array.length; i++) {
+        callback.call(scope, i, array[i]);
+      }
+    },
+
+
+    /**
+     * Enter Page
+     */
+    entrance() {
+      s.html.classList.add(s.classes.loading);
+
+      if (s.isLoaded = true) {
         setTimeout(function() {
-          $('body').removeClass('is-loading').addClass("is-loaded");
+          s.html.classList.remove(s.classes.loading);
+          s.html.classList.add(s.classes.loaded);
         }, s.entranceDuration);
-      }, 
 
-      /** 
-       * Transition Page
-       */
-      transitionPage: function() {
-        s.noTransLinks.on('click', function(e) {
+        setTimeout(function() {
+          s.html.classList.add('is-animation-ready');
+        }, s.finalAnimationStart);
+      }
+    },
+
+    /**
+     * Exit Page
+     */
+    exit(duration) {
+      s.html.classList.add(s.classes.exiting);
+
+      setTimeout(function() {
+        PageTransitions.redirectPage();
+      }, duration);
+    },
+
+    /**
+     * Is Loaded Check
+     */
+    isPageLoaded() {
+      const state = document.readyState;
+      if (state === 'interactive' || state === 'complete') s.isLoaded = true;
+    },
+
+    /**
+     * Transition Page
+     */
+    transitionPage() {
+
+      PageTransitions.forEach ( s.transLinks, function (index, transLink) {
+
+        transLink.addEventListener('click', function (e) {
+
+          s.linkLocation = this.href;
 
           // Bail if body has no-trans class
-          if (s.body.hasClass(noTrans)) {
-            return
-          }
+          if (s.html.classList.contains(noTrans) || this.classList.contains(noTrans)) return;
+          if (transLink.href.match('pdf')) return;
           // Bail if modifer keys (must be before preventDefault)
           if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-           
+
           e.preventDefault();
 
-          // Our Link location reference
-          s.linkLocation = this.href;
-          
-          // Redirect Page  to link location
-          function redirectPage() {
-            window.location = s.linkLocation;
-          }
-
-          // Add our is-exiting class
-          s.body.addClass('is-exiting');
-
-          // for a simple fadeout then redirect:
-          // $('body').fadeOut(500, redirectPage);
-          
-          // Redirect page after ExitDuration
-          setTimeout(function() {
-            redirectPage();
-        }, s.exitDuration);
-
+          window.scroll({top: 0, left: 0, behavior: 'smooth' });
+          PageTransitions.exit(s.exitDuration);
         });
-      },
+      });
+    },
 
-      /**
-       * Unload Window
-       * Ensures back button works in FF,
-       * @todo  update for jquery 3
-       */
-      unloadWindow: function() {
-        // For back button history
-        $(window).unload(function() {
-          $(window).unbind('unload');
-        });
-      },
+    /**
+     * Redirect Page
+     */
+    redirectPage() {
+      window.location = s.linkLocation;
+    },
 
-      /**
-       * Workaround
-       * Check the persisted property of the onpageshow event
-       * to stop back button cache in Safari
-       * @todo  update for jquery 3
-       */
-      workaround: function() {
-        // For Safari browser
-        $(window).bind('pageshow', function(e) {
-          if (e.originalEvent.persisted) window.location.reload();
-        });
-      }
+    /**
+     * Unload Window
+     * Ensures back button works in FF,
+     * @todo  update for jquery 3
+     */
+    unloadWindow() {
+      // For back button history
+      window.onbeforeunload = null;
+    },
+
+    /**
+     * Workaround
+     * Check the persisted property of the onpageshow event
+     * to stop back button cache in Safari
+     */
+    workaround() {
+      // For Safari browser
+      window.onpageshow = function(e) {
+        if (e.persisted) window.location.reload();
+      };
     }
-})(); 
+  }
+})();
 
 // Init our Module
-PageTransition.init();
+export default PageTransitions;

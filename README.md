@@ -1,26 +1,23 @@
 # Page Transitions
-A jquery component for adding all-sexy-like page transitions to your site's navigation.
 
-The component works by delaying site exit, then adding an ```is-exiting``` class to trigger a css exit transitions/animations. Then on page load, we add an ```is-loading``` class that swaps with an ```is-loaded``` class after a defined duration, which we use to trigger our css entrance transitions/animations.
+A poor mans ajax-ish page transitions in pure js.
 
-Your CSS animations or transitions can range from simple fade out and ins, to nifty menu interactions, to sliding panels and preloaders for a poor mans ajax-like effect.
-
+The script works by delaying page exit when clicking an internal link, then adding an `is-exiting` class to trigger a css exit transitions/animations. Inversely, on page load, we add an `is-loading` class that swaps with an `is-loaded` class after a defined duration.
 
 
-### As Seen On (variations)
+### Useage
 
-- [Formidable](https://formidable.com/)
-- [Urban Influence](http://urbaninfluence.com/)
-- [Ligaya Scaff](http://ligayascaff.com/)
-- [Ink & Volt](https://ink-and-volt.com/)
-- [Inrix](http://inrix.com/)
-- [Vrge](http://vrge.com/)
-- [DNA Seattle](http://dnaseattle.com)
+```
+// app.js
 
+import PageTransitions from './components/_PageTransitions'
+
+PageTransitions.init()
+```
 
 ### No Trans
 
-To stop link from triggering the exit animation, use the ```no-trans``` class. You can also add ```no-trans``` to the body to stop all page links from transitioning. 
+To stop link from triggering the exit animation, use the ```no-trans``` class. You can also add ```no-trans``` to the body to stop all page links from transitioning.
 
 
 
